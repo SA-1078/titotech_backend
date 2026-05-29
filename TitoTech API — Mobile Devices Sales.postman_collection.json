@@ -1,0 +1,1321 @@
+{
+  "info": {
+    "_postman_id": "e727dae6-a0ae-452a-b253-8b93b7166e25",
+    "name": "TitoTech API — Mobile Devices Sales",
+    "description": "Complete collection for TitoTech backend with Cart and Orders separation. Automatically stores JWT tokens, category_id, product_id, order_id, customer_profile_id, and item_id upon login/register/resource creation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url",            "value": "http://127.0.0.1:8000/api" },
+    { "key": "access",              "value": "" },
+    { "key": "refresh",             "value": "" },
+    { "key": "category_id",         "value": "" },
+    { "key": "product_id",          "value": "" },
+    { "key": "order_id",            "value": "" },
+    { "key": "customer_profile_id", "value": "" },
+    { "key": "item_id",             "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Service OK', () => {",
+              "  const j = pm.response.json();",
+              "  pm.expect(j.status).to.eql('ok');",
+              "  pm.expect(j.service).to.include('TitoTech');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health/",
+          "host": ["{{base_url}}"],
+          "path": ["health", ""]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('access',  j.access);",
+                  "pm.collectionVariables.set('refresh', j.refresh);",
+                  "pm.test('Tokens received', () => {",
+                  "  pm.expect(j.access).to.be.a('string');",
+                  "  pm.expect(j.username).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"Eduardo_cliente2\",\n  \"email\": \"eduardoc2@gmail.com\",\n  \"password\": \"Admin123!\",\n  \"password2\": \"Admin123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('access',  j.access);",
+                  "pm.collectionVariables.set('refresh', j.refresh);",
+                  "pm.test('Token saved', () => pm.expect(j.access).to.be.a('string'));",
+                  "pm.test('Is staff', () => pm.expect(j.is_staff).to.be.true);",
+                  "console.log('✅ Token saved for:', j.username);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"Admin\",\n  \"password\": \"Admin2026Tito\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login (Customer)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('access',  j.access);",
+                  "pm.collectionVariables.set('refresh', j.refresh);",
+                  "console.log('✅ Token saved for:', j.username);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"Eduardo_cliente2\",\n  \"password\": \"Admin123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('access', j.access);",
+                  "console.log('🔄 Access token successfully refreshed');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/token/refresh/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "token", "refresh", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{access}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/token/verify/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "token", "verify", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('access',  '');",
+                  "pm.collectionVariables.set('refresh', '');",
+                  "console.log('🔴 Logged out, tokens cleared');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/logout/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/users/profile/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "profile", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('Profile updated', () => pm.expect(j.profile).to.be.an('object'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Eduardo\",\n  \"last_name\": \"Pérez\",\n  \"profile\": {\n    \"phone_number\": \"0987654321\",\n    \"shipping_address\": \"Av. Amazonas N12-34\",\n    \"city\": \"Quito\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/profile/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "profile", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] List Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/users/?ordering=username",
+              "host": ["{{base_url}}"],
+              "path": ["users", ""],
+              "query": [{ "key": "ordering", "value": "username" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Customer Profiles",
+      "item": [
+        {
+          "name": "[Admin] List Customer Profiles",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "if (j.results && j.results.length > 0) {",
+                  "  pm.collectionVariables.set('customer_profile_id', j.results[0].id);",
+                  "  console.log('👤 customer_profile_id saved:', j.results[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/customerprofiles/",
+              "host": ["{{base_url}}"],
+              "path": ["customerprofiles", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Get Customer Profile Detail",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/customerprofiles/{{customer_profile_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["customerprofiles", "{{customer_profile_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Update Customer Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"0991112222\",\n  \"shipping_address\": \"Nueva Dirección Admin 123\",\n  \"city\": \"Ibarra\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customerprofiles/{{customer_profile_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["customerprofiles", "{{customer_profile_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Delete Customer Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));",
+                  "pm.collectionVariables.set('customer_profile_id', '');",
+                  "console.log('🗑️ Customer profile and Django user deleted.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/customerprofiles/{{customer_profile_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["customerprofiles", "{{customer_profile_id}}", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "List Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('Has results', () => pm.expect(j.count).to.be.above(0));",
+                  "if (j.results && j.results.length > 0) {",
+                  "  pm.collectionVariables.set('category_id', j.results[0].id);",
+                  "  console.log('📂 category_id saved:', j.results[0].id, '-', j.results[0].name);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/categories/",
+              "host": ["{{base_url}}"],
+              "path": ["categories", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filter - Only Active",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/categories/?is_active=true&ordering=name",
+              "host": ["{{base_url}}"],
+              "path": ["categories", ""],
+              "query": [
+                { "key": "is_active", "value": "true" },
+                { "key": "ordering",  "value": "name" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/categories/?search=smartphones",
+              "host": ["{{base_url}}"],
+              "path": ["categories", ""],
+              "query": [{ "key": "search", "value": "smartphones" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Products by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/categories/{{category_id}}/products/",
+              "host": ["{{base_url}}"],
+              "path": ["categories", "{{category_id}}", "products", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Create Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('category_id', j.id);",
+                  "console.log('📂 New category ID:', j.id, '-', j.name);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tablets\",\n  \"description\": \"Next-generation tablets and e-readers.\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/categories/",
+              "host": ["{{base_url}}"],
+              "path": ["categories", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Update Category",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description of the category.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/categories/{{category_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["categories", "{{category_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Delete Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));",
+                  "pm.collectionVariables.set('category_id', '');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/categories/{{category_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["categories", "{{category_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Category Stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/categories/stats/",
+              "host": ["{{base_url}}"],
+              "path": ["categories", "stats", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List Products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('Has results', () => pm.expect(j.count).to.be.above(0));",
+                  "if (j.results && j.results.length > 0) {",
+                  "  pm.collectionVariables.set('product_id', j.results[0].id);",
+                  "  console.log('📱 product_id saved:', j.results[0].id, '-', j.results[0].model);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/products/",
+              "host": ["{{base_url}}"],
+              "path": ["products", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Available Products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('Only in stock', () => {",
+                  "  j.results.forEach(p => pm.expect(p.stock).to.be.above(0));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/products/disponibles/",
+              "host": ["{{base_url}}"],
+              "path": ["products", "disponibles", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Price",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/products/?price_min=800&price_max=1500&ordering=-price",
+              "host": ["{{base_url}}"],
+              "path": ["products", ""],
+              "query": [
+                { "key": "price_min", "value": "800" },
+                { "key": "price_max", "value": "1500" },
+                { "key": "ordering",  "value": "-price" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Category and Stock",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/products/?category={{category_id}}&stock_min=1",
+              "host": ["{{base_url}}"],
+              "path": ["products", ""],
+              "query": [
+                { "key": "category",  "value": "{{category_id}}" },
+                { "key": "stock_min", "value": "1" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/products/?search=samsung",
+              "host": ["{{base_url}}"],
+              "path": ["products", ""],
+              "query": [{ "key": "search", "value": "samsung" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/products/{{product_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["products", "{{product_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Create Smartphone",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('product_id', j.id);",
+                  "console.log('📱 New product ID:', j.id, '-', j.brand, j.model);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": {{category_id}},\n  \"brand\": \"Samsung\",\n  \"model\": \"Galaxy A55\",\n  \"storage\": \"256GB\",\n  \"ram\": \"8GB\",\n  \"color\": \"Azul Oscuro\",\n  \"price\": \"549.99\",\n  \"stock\": 25\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/products/",
+              "host": ["{{base_url}}"],
+              "path": ["products", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Create Accessory",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('product_id', j.id);",
+                  "console.log('🎒 Accessory created ID:', j.id, '-', j.model);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": {{category_id}},\n  \"model\": \"Case Silicona TitoTech\",\n  \"compatibility\": \"Samsung Galaxy S25, A55\",\n  \"price\": \"19.99\",\n  \"stock\": 100\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/products/",
+              "host": ["{{base_url}}"],
+              "path": ["products", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Update Product",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": \"499.99\",\n  \"stock\": 30\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/products/{{product_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["products", "{{product_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Restock Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log('📦 New stock:', j.nuevo_stock, 'units');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 50\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/products/{{product_id}}/restock/",
+              "host": ["{{base_url}}"],
+              "path": ["products", "{{product_id}}", "restock", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Inventory Stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log('📊 Active products total:', j.total_activos, '| Stock total:', j.stock_total);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/products/stats/",
+              "host": ["{{base_url}}"],
+              "path": ["products", "stats", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Delete Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));",
+                  "pm.collectionVariables.set('product_id', '');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/products/{{product_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["products", "{{product_id}}", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "Get Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log('🛒 Cart total:', j.total_amount, '| Items count:', j.num_items);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/cart/",
+              "host": ["{{base_url}}"],
+              "path": ["cart", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Item to Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "if (j.items && j.items.length > 0) {",
+                  "  pm.collectionVariables.set('item_id', j.items[0].id);",
+                  "  console.log('🆔 First item_id in cart saved:', j.items[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{product_id}},\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cart/add-item/",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "add-item", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Cart Item Quantity",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log('🔄 Cart updated. Total items:', j.num_items);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cart/items/{{item_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "items", "{{item_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Cart Item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "console.log('🗑️ Item removed from cart.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/cart/items/{{item_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "items", "{{item_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "console.log('🧹 Cart cleared completely.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/cart/clear/",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "clear", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Checkout (Purchase)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('order_id', j.id);",
+                  "console.log('🎉 Purchase complete! Permanent Order ID created:', j.id, '| Total Paid: $' + j.total_amount);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": {
+              "raw": "{{base_url}}/cart/checkout/",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "checkout", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "List My Orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/orders/",
+              "host": ["{{base_url}}"],
+              "path": ["orders", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order Detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log('📋 Order Detail ID:', j.id, '| Status:', j.status_display, '| Total Amount:', j.total_amount);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/orders/{{order_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["orders", "{{order_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Status",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/orders/?status=paid",
+              "host": ["{{base_url}}"],
+              "path": ["orders", ""],
+              "query": [{ "key": "status", "value": "paid" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Date",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/orders/?from_date=2026-01-01&to_date=2026-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["orders", ""],
+              "query": [
+                { "key": "from_date", "value": "2026-01-01" },
+                { "key": "to_date",   "value": "2026-12-31" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Update Order Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log('🔄 Fulfilled state updated to:', j.status_display);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"shipped\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders/{{order_id}}/actualizar-estado/",
+              "host": ["{{base_url}}"],
+              "path": ["orders", "{{order_id}}", "actualizar-estado", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Sales Stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log('💰 Total orders:', j.total_pedidos, '| Revenue: $' + j.total_ingresos);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/orders/stats/",
+              "host": ["{{base_url}}"],
+              "path": ["orders", "stats", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel or Delete Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));",
+                  "console.log('🗑️ Order canceled successfully, stock restored to inventory.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/orders/{{order_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["orders", "{{order_id}}", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Order Details",
+      "item": [
+        {
+          "name": "[Admin] List All Order Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "if (j.results && j.results.length > 0) {",
+                  "  pm.collectionVariables.set('item_id', j.results[0].id);",
+                  "  console.log('📦 item_id saved from global list:', j.results[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/orderdetails/",
+              "host": ["{{base_url}}"],
+              "path": ["orderdetails", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Filter Order Details",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/orderdetails/?order={{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["orderdetails", ""],
+              "query": [{ "key": "order", "value": "{{order_id}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Update Order Detail Quantity",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "console.log('🔄 Quantity updated globally to:', j.quantity);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orderdetails/{{item_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["orderdetails", "{{item_id}}", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Delete Order Detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));",
+                  "pm.collectionVariables.set('item_id', '');",
+                  "console.log('🗑️ Global order item removed, stock returned.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+            "url": {
+              "raw": "{{base_url}}/orderdetails/{{item_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["orderdetails", "{{item_id}}", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

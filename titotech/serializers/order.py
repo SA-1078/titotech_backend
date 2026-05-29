@@ -17,6 +17,20 @@ class OrderDetailSerializer(serializers.ModelSerializer):
         return obj.subtotal
 
 
+class OrderDetailAdminSerializer(serializers.ModelSerializer):
+    product  = ProductSummarySerializer(read_only=True)
+    subtotal = serializers.SerializerMethodField()
+
+    class Meta:
+        model  = OrderDetail
+        fields = ['id', 'order', 'product', 'quantity', 'unit_price', 'subtotal']
+        read_only_fields = ['id', 'order', 'unit_price']
+
+    def get_subtotal(self, obj):
+        return obj.subtotal
+
+
+
 class OrderSerializer(serializers.ModelSerializer):
     items          = OrderDetailSerializer(many=True, read_only=True)
     username       = serializers.CharField(source='customer.user.username', read_only=True)

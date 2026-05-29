@@ -6,14 +6,22 @@ from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
-from titotech.models             import Order, OrderDetail, Product, CustomerProfile
-from titotech.serializers.order  import OrderSerializer, AddItemSerializer
-from titotech.permissions        import IsOwnerOrStaff
-from titotech.filters            import OrderFilter
-from titotech.pagination         import StandardPagination
+from titotech.models import Order, Product, CustomerProfile
+from titotech.serializers.order import OrderSerializer
+from titotech.permissions import IsOwnerOrStaff
+from titotech.filters import OrderFilter
+from titotech.pagination import StandardPagination
 
 
 class OrderViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para consultar y gestionar el historial de compras concluidas (Órdenes).
+    - GET /api/orders/ -> Historial de compras (cliente ve las suyas / admin ve todas).
+    - GET /api/orders/{id}/ -> Detalles de una orden con sus productos.
+    - DELETE /api/orders/{id}/ -> Cancelar/eliminar un pedido (restaura el stock).
+    - POST /api/orders/{id}/actualizar-estado/ -> (Admin) Cambia el estado del pedido.
+    - GET /api/orders/stats/ -> (Admin) Estadísticas de facturación.
+    """
     serializer_class   = OrderSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrStaff]
     pagination_class   = StandardPagination
@@ -21,7 +29,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     filterset_class    = OrderFilter
     ordering_fields    = ['created_at', 'total_amount']
     ordering           = ['-created_at']
-    http_method_names  = ['get', 'post', 'patch', 'delete', 'head', 'options']
+    http_method_names  = ['get', 'delete', 'post', 'head', 'options']  # POST is only used for custom actions
 
     def get_queryset(self):
         if self.request.user.is_staff:
@@ -41,60 +49,29 @@ class OrderViewSet(viewsets.ModelViewSet):
             .prefetch_related('items__product__category')
         )
 
-    def perform_create(self, serializer):
-        customer = self.request.user.profile
-        serializer.save(customer=customer)
-
-    @action(detail=True, methods=['post'], url_path='agregar-item')
-    def agregar_item(self, request, pk=None):
-        """Agrega un producto al pedido (solo si está en estado pendiente)."""
+    def destroy(self, request, *args, **kwargs):
+        """
+        Cancela y elimina un pedido.
+        Restaurará automáticamente el stock de todos los productos de esta orden en el inventario.
+        """
         from django.db import transaction
         order = self.get_object()
-        if order.status != 'pending':
+        
+        # Un cliente común solo puede cancelar pedidos que no hayan sido enviados o entregados
+        if not request.user.is_staff and order.status in ['shipped', 'delivered', 'cancelled']:
             return Response(
-                {'error': f'No se puede modificar un pedido con estado "{order.get_status_display()}".'},
-                status=status.HTTP_400_BAD_REQUEST,
+                {'error': 'No puedes cancelar un pedido que ya ha sido enviado, entregado o cancelado.'},
+                status=status.HTTP_400_BAD_REQUEST
             )
-        serializer = AddItemSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
+            
         with transaction.atomic():
-            product  = Product.objects.select_for_update().get(pk=serializer.validated_data['product_id'])
-            quantity = serializer.validated_data['quantity']
-
-            item, created = OrderDetail.objects.get_or_create(
-                order=order,
-                product=product,
-                defaults={'unit_price': product.price, 'quantity': quantity},
-            )
-            if not created:
-                item.quantity += quantity
-                item.save(update_fields=['quantity'])
-
-            product.stock -= quantity
-            product.save(update_fields=['stock'])
-            order.calculate_total()
-
-        order.refresh_from_db()
-        return Response(OrderSerializer(order).data)
-
-    @action(detail=True, methods=['post'], url_path='confirmar')
-    def confirmar(self, request, pk=None):
-        """Cambia el estado del pedido de 'pendiente' a 'pagado'."""
-        order = self.get_object()
-        if order.status != 'pending':
-            return Response(
-                {'error': 'Solo se pueden confirmar pedidos en estado Pendiente.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if not order.items.exists():
-            return Response(
-                {'error': 'No se puede confirmar un pedido sin ítems.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        order.status = 'paid'
-        order.save(update_fields=['status'])
-        return Response(OrderSerializer(order).data)
+            for item in order.items.all():
+                product = Product.objects.select_for_update().get(pk=item.product.pk)
+                product.stock += item.quantity
+                product.save(update_fields=['stock'])
+            order.delete()
+            
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,
@@ -103,7 +80,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         url_path='actualizar-estado',
     )
     def actualizar_estado(self, request, pk=None):
-        """Permite al administrador cambiar el estado del pedido."""
+        """Permite al administrador cambiar el estado del pedido (shipped, delivered, etc.)."""
         order          = self.get_object()
         new_status     = request.data.get('status')
         valid_statuses = [s[0] for s in Order.STATUS_CHOICES]
@@ -124,7 +101,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         url_path='stats',
     )
     def stats(self, request):
-        """Estadísticas generales de ventas."""
+        """Estadísticas generales de facturación y ventas (Admin)."""
         from django.db.models import Count, Sum
         qs     = Order.objects.all()
         totals = qs.aggregate(

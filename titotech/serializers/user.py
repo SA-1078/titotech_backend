@@ -39,6 +39,25 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
         fields = ['id', 'phone_number', 'shipping_address', 'city']
 
 
+class CustomerProfileAdminSerializer(serializers.ModelSerializer):
+    """Serializer extendido para panel admin — incluye datos del usuario."""
+    username = serializers.CharField(source='user.username', read_only=True)
+    email    = serializers.CharField(source='user.email',    read_only=True)
+    is_active = serializers.BooleanField(source='user.is_active', read_only=True)
+    num_orders = serializers.SerializerMethodField()
+
+    class Meta:
+        model  = CustomerProfile
+        fields = [
+            'id', 'username', 'email', 'is_active',
+            'phone_number', 'shipping_address', 'city', 'num_orders',
+        ]
+        read_only_fields = ['id', 'username', 'email', 'is_active']
+
+    def get_num_orders(self, obj):
+        return obj.orders.count()
+
+
 class UserSerializer(serializers.ModelSerializer):
     profile    = CustomerProfileSerializer(read_only=True)
     num_orders = serializers.SerializerMethodField()
@@ -79,7 +98,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         # Actualizar campos del CustomerProfile
-        profile = instance.profile
+        profile, _ = CustomerProfile.objects.get_or_create(user=instance)
         for attr, value in profile_data.items():
             setattr(profile, attr, value)
         profile.save()
