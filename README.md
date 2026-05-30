@@ -26,7 +26,7 @@ El backend implementa **7 entidades** perfectamente relacionadas en PostgreSQL p
 2. **`Product`** (`titotech_products`): Dispositivos móviles y accesorios con campos opcionales inteligentes y control estricto de stock.
 3. **`CustomerProfile`** (`titotech_customerprofile`): Extensión del modelo User de Django con dirección de envío, ciudad y teléfono.
 4. **`Cart`** (`titotech_carts`): Carrito temporal de compras por cliente (OneToOne con el perfil).
-5. **`CartItem`** (`titotech_cartitems`): Productos añadidos al carrito con su cantidad. **No descuenta stock hasta hacer Checkout**.
+5. **`CartItem`** (`titotech_cartitems`): Productos agregados al carrito con su cantidad. **No descuenta stock hasta hacer Checkout**.
 6. **`Order`** (`titotech_orders`): Registro definitivo de compras/ventas concluidas e históricas.
 7. **`OrderDetail`** (`titotech_orderdetails`): Ítems comprados en una orden con registro histórico del `unit_price` al momento del pago.
 
@@ -73,7 +73,7 @@ El proyecto incluye migraciones pre-configuradas con cargadores automáticos de 
 # Ejecutar las migraciones
 uv run python manage.py migrate
 
-# El superusuario (Admin) se creará automáticamente en las migraciones de datos o puedes crearlo manualmente con:
+# Crea tu superusuario local para el panel de administración
 uv run python manage.py createsuperuser
 ```
 
@@ -87,18 +87,19 @@ El backend estará disponible en: **`http://127.0.0.1:8000/api/`**
 
 ## 👥 Credenciales de Prueba
 
-Para facilitar la evaluación con Postman, la base de datos cuenta con los siguientes usuarios pre-cargados:
+Para facilitar la evaluación con Postman, la base de datos cuenta con las siguientes credenciales de prueba pre-configuradas (las cuales puedes registrar localmente o usar de ejemplo):
 
 ### 1. Administrador (Superuser - is_staff = True)
-- **Username**: `Admin`
-- **Password**: `Admin2026Tito`
+- **Username**: `admin_user`
+- **Password**: `ContrasenaAdmin123!`
 - **Email**: `admin@titotech.com`
-- *Permisos*: CRUD total de Categorías y Productos, estadísticas de ventas, cambios de estado y control CRUD global sobre perfiles y order details.
+- **Permisos**: CRUD total de Categorías y Productos, estadísticas de ventas, cambios de estado y control CRUD global sobre perfiles y order details.
 
 ### 2. Cliente Registrado (Customer - Normal)
-- **Username**: `Eduardo_cliente2`
-- **Password**: `Admin123!`
-- *Permisos*: Ver productos y categorías (público), CRUD total sobre su propio **Carrito de Compras**, realizar **Checkout** y visualizar su **Historial de Pedidos**.
+- **Username**: `cliente_pruebas`
+- **Password**: `ContrasenaCliente123!`
+- **Email**: `cliente@example.com`
+- **Permisos**: Ver productos y categorías (público), CRUD total sobre su propio Carrito de Compras, realizar Checkout y visualizar su Historial de Pedidos.
 
 ---
 
