@@ -45,11 +45,11 @@ class Product(models.Model):
     price         = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Precio')
     stock         = models.PositiveIntegerField(default=0, verbose_name='Stock disponible')
     is_active     = models.BooleanField(default=True, verbose_name='Activo')
-    image         = models.ImageField(
-        upload_to='products/',
+    image         = models.CharField(
+        max_length=500,
         blank=True,
         null=True,
-        verbose_name='Imagen',
+        verbose_name='Imagen (URL o ruta local)',
     )
     created_at    = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')
     updated_at    = models.DateTimeField(auto_now=True, verbose_name='Última actualización')
