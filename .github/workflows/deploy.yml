@@ -67,7 +67,8 @@ jobs:
 
             cd ${{ secrets.DEPLOY_PATH }}
 
-            git pull origin main
+            git fetch origin
+            git reset --hard origin/main
 
             echo "=== Instalando dependencias ==="
 
@@ -79,7 +80,11 @@ jobs:
 
             echo "=== Reiniciando Gunicorn ==="
 
-            systemctl restart gunicorn-titotech
+            sudo systemctl restart gunicorn-titotech
+
+            echo "=== Reiniciando Nginx ==="
+
+            sudo systemctl restart nginx
 
             echo "=== Verificando API ==="
 
